@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>行動記録</title>
+
+    <link rel="stylesheet" href="style.css">
+   
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="theme-color" content="#ffffff">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <meta name="apple-mobile-web-app-title" content="行動記録">
+
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+</head>
+
+<body>
+
+    <div class="app">
+
+        <h1>行動記録</h1>
+
+        <div class="time" id="current-time">
+            --:--:--
+        </div>
+
+        <div class="button-area">
+
+            <button class="action-button">
+                現場確認
+            </button>
+
+            <button class="action-button">
+                設備対応
+            </button>
+
+            <button class="action-button">
+                改善活動
+            </button>
+
+            <button class="action-button">
+                会議
+            </button>
+
+            <button class="action-button">
+                資料作成
+            </button>
+
+            <button class="action-button">
+                メール
+            </button>
+
+            <button class="action-button">
+                データ分析
+            </button>
+
+            <button class="action-button">
+                その他
+            </button>
+
+        </div>
+
+        <div class="selected-area">
+            選択中：
+            <span id="selected-action">未選択</span>
+        </div>
+
+        <button class="record-button" id="record-button">
+            記録する
+        </button>
+
+        <div class="history">
+
+        <div class="history-header">
+            <h2>本日の履歴</h2>
+
+            <button id="undo-button" class="undo-button">
+                直前の記録を取り消す
+            </button>
+        </div>
+
+        <div id="history-list">
+            <p>まだ記録はありません。</p>
+        </div>
+
+    </div>
+
+    <button class="csv-button" id="csv-button">
+        CSV出力
+    </button>
+
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+
+</html>

@@ -30,45 +30,14 @@
     <div class="app">
 
         <h1>行動記録</h1>
-
+        <button id="settings-button" class="settings-button">
+             ⚙ 設定
+        </button>
         <div class="time" id="current-time">
             --:--:--
         </div>
 
-        <div class="button-area">
-
-            <button class="action-button">
-                現場確認
-            </button>
-
-            <button class="action-button">
-                設備対応
-            </button>
-
-            <button class="action-button">
-                改善活動
-            </button>
-
-            <button class="action-button">
-                会議
-            </button>
-
-            <button class="action-button">
-                資料作成
-            </button>
-
-            <button class="action-button">
-                メール
-            </button>
-
-            <button class="action-button">
-                データ分析
-            </button>
-
-            <button class="action-button">
-                その他
-            </button>
-
+        <div class="button-area" id="button-area">
         </div>
 
         <div class="selected-area">
@@ -99,7 +68,36 @@
     <button class="csv-button" id="csv-button">
         CSV出力
     </button>
+    <div id="settings-screen" class="settings-screen hidden">
 
+        <div class="settings-header">
+
+            <h2>行動項目設定</h2>
+
+            <button id="settings-close-button"
+                    class="settings-close-button">
+                閉じる
+            </button>
+
+        </div>
+
+        <div id="action-settings-list">
+        </div>
+
+        <div class="add-action-area">
+
+            <input
+                type="text"
+                id="new-action-name"
+                placeholder="新しい行動項目">
+
+            <button id="add-action-button">
+                追加
+            </button>
+
+        </div>
+
+    </div>
     </div>
 
     <script src="app.js"></script>

@@ -1,14 +1,176 @@
 // ========================================
 // 画面部品
 // ========================================
+const buttonArea =
+    document.getElementById("button-area");
 
-const actionButtons = document.querySelectorAll(".action-button");
+const settingsButton =
+    document.getElementById("settings-button");
+
+const settingsScreen =
+    document.getElementById("settings-screen");
+
+const settingsCloseButton =
+    document.getElementById("settings-close-button");
+
+const actionSettingsList =
+    document.getElementById("action-settings-list");
+
+const newActionName =
+    document.getElementById("new-action-name");
+
+const addActionButton =
+    document.getElementById("add-action-button");
 const selectedAction = document.getElementById("selected-action");
 const currentTime = document.getElementById("current-time");
 const recordButton = document.getElementById("record-button");
 const historyList = document.getElementById("history-list");
 const csvButton = document.getElementById("csv-button");
 const undoButton =document.getElementById("undo-button");
+
+function initializeActions() {
+
+    const transaction =
+        db.transaction(
+            ACTION_STORE_NAME,
+            "readonly"
+        );
+
+    const store =
+        transaction.objectStore(
+            ACTION_STORE_NAME
+        );
+
+    const request =
+        store.count();
+
+
+    request.onsuccess = function() {
+
+        if (request.result === 0) {
+
+            createDefaultActions();
+
+        } else {
+
+            loadActionButtons();
+
+        }
+    };
+}
+
+function createDefaultActions() {
+
+    const defaultActions = [
+        "現場確認",
+        "設備対応",
+        "改善活動",
+        "会議",
+        "資料作成",
+        "メール",
+        "データ分析",
+        "その他"
+    ];
+
+
+    const transaction =
+        db.transaction(
+            ACTION_STORE_NAME,
+            "readwrite"
+        );
+
+
+    const store =
+        transaction.objectStore(
+            ACTION_STORE_NAME
+        );
+
+
+    defaultActions.forEach(
+        function(actionName) {
+
+            store.add({
+                name: actionName
+            });
+
+        }
+    );
+
+
+    transaction.oncomplete =
+        function() {
+
+            loadActionButtons();
+
+        };
+}
+
+function loadActionButtons() {
+
+    const transaction =
+        db.transaction(
+            ACTION_STORE_NAME,
+            "readonly"
+        );
+
+
+    const store =
+        transaction.objectStore(
+            ACTION_STORE_NAME
+        );
+
+
+    const request =
+        store.getAll();
+
+
+    request.onsuccess = function() {
+
+        const actions =
+            request.result;
+
+        buttonArea.innerHTML = "";
+
+
+        actions.forEach(
+            function(action) {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                button.classList.add(
+                    "action-button"
+                );
+
+
+                button.textContent =
+                    action.name;
+
+
+                button.addEventListener(
+                    "click",
+                    function() {
+
+                        selectAction(
+                            button,
+                            action.name
+                        );
+
+                    }
+                );
+
+
+                buttonArea.appendChild(
+                    button
+                );
+
+            }
+        );
+    };
+}
 
 // ========================================
 // 選択中の行動
@@ -22,8 +184,10 @@ let selectedActionName = "";
 // ========================================
 
 const DB_NAME = "WorkLogDB";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
+
 const STORE_NAME = "workLogs";
+const ACTION_STORE_NAME = "actions";
 
 let db;
 
@@ -41,23 +205,43 @@ function openDatabase() {
 
         db = event.target.result;
 
-        // workLogsという保存場所がまだなければ作る
+
+        // ============================
+        // 行動記録保存場所
+        // ============================
+
         if (!db.objectStoreNames.contains(STORE_NAME)) {
 
-            const store = db.createObjectStore(
-                STORE_NAME,
-                {
-                    keyPath: "id",
-                    autoIncrement: true
-                }
-            );
+            const store =
+                db.createObjectStore(
+                    STORE_NAME,
+                    {
+                        keyPath: "id",
+                        autoIncrement: true
+                    }
+                );
 
-            // 日付で検索できるようにする
             store.createIndex(
                 "date",
                 "date",
                 {
                     unique: false
+                }
+            );
+        }
+
+
+        // ============================
+        // 行動項目保存場所
+        // ============================
+
+        if (!db.objectStoreNames.contains(ACTION_STORE_NAME)) {
+
+            db.createObjectStore(
+                ACTION_STORE_NAME,
+                {
+                    keyPath: "id",
+                    autoIncrement: true
                 }
             );
         }
@@ -67,11 +251,17 @@ function openDatabase() {
     // DBを正常に開けた時
     request.onsuccess = function(event) {
 
-        db = event.target.result;
+        db =
+            event.target.result;
 
-        console.log("IndexedDBを開きました");
 
-        // 保存済み履歴を読み込む
+        console.log(
+            "IndexedDBを開きました"
+        );
+
+
+        initializeActions();
+
         loadHistory();
     };
 
@@ -123,33 +313,37 @@ setInterval(updateClock, 1000);
 // 行動ボタン
 // ========================================
 
-actionButtons.forEach(function(button) {
+function selectAction(button, actionName) {
 
-    button.addEventListener(
-        "click",
-        function() {
+    const buttons =
+        document.querySelectorAll(
+            ".action-button"
+        );
 
-            actionButtons.forEach(
-                function(btn) {
 
-                    btn.classList.remove(
-                        "selected"
-                    );
-                }
-            );
+    buttons.forEach(
+        function(btn) {
 
-            button.classList.add(
+            btn.classList.remove(
                 "selected"
             );
 
-            selectedActionName =
-                button.textContent.trim();
-
-            selectedAction.textContent =
-                selectedActionName;
         }
     );
-});
+
+
+    button.classList.add(
+        "selected"
+    );
+
+
+    selectedActionName =
+        actionName;
+
+
+    selectedAction.textContent =
+        actionName;
+}
 
 
 // ========================================
@@ -297,14 +491,347 @@ function clearSelection() {
     selectedAction.textContent =
         "未選択";
 
-    actionButtons.forEach(
+
+    const buttons =
+        document.querySelectorAll(
+            ".action-button"
+        );
+
+
+    buttons.forEach(
         function(button) {
 
             button.classList.remove(
                 "selected"
             );
+
         }
     );
+}
+
+settingsButton.addEventListener(
+    "click",
+    function() {
+
+        settingsScreen.classList.remove(
+            "hidden"
+        );
+
+        loadActionSettings();
+
+    }
+);
+settingsCloseButton.addEventListener(
+    "click",
+    function() {
+
+        settingsScreen.classList.add(
+            "hidden"
+        );
+
+        loadActionButtons();
+
+    }
+);
+
+function loadActionSettings() {
+
+    const transaction =
+        db.transaction(
+            ACTION_STORE_NAME,
+            "readonly"
+        );
+
+
+    const store =
+        transaction.objectStore(
+            ACTION_STORE_NAME
+        );
+
+
+    const request =
+        store.getAll();
+
+
+    request.onsuccess =
+        function() {
+
+            const actions =
+                request.result;
+
+
+            actionSettingsList.innerHTML =
+                "";
+
+
+            actions.forEach(
+                function(action) {
+
+                    createActionSettingItem(
+                        action
+                    );
+
+                }
+            );
+        };
+}
+
+function createActionSettingItem(action) {
+
+    const row =
+        document.createElement(
+            "div"
+        );
+
+
+    row.classList.add(
+        "action-setting-item"
+    );
+
+
+    const input =
+        document.createElement(
+            "input"
+        );
+
+
+    input.type =
+        "text";
+
+
+    input.value =
+        action.name;
+
+
+    input.classList.add(
+        "action-setting-input"
+    );
+
+
+    const saveButton =
+        document.createElement(
+            "button"
+        );
+
+
+    saveButton.textContent =
+        "変更";
+
+
+    saveButton.classList.add(
+        "action-save-button"
+    );
+
+
+    saveButton.addEventListener(
+        "click",
+        function() {
+
+            updateAction(
+                action.id,
+                input.value
+            );
+
+        }
+    );
+
+
+    const deleteButton =
+        document.createElement(
+            "button"
+        );
+
+
+    deleteButton.textContent =
+        "削除";
+
+
+    deleteButton.classList.add(
+        "action-delete-button"
+    );
+
+
+    deleteButton.addEventListener(
+        "click",
+        function() {
+
+            deleteAction(
+                action.id
+            );
+
+        }
+    );
+
+
+    row.appendChild(
+        input
+    );
+
+
+    row.appendChild(
+        saveButton
+    );
+
+
+    row.appendChild(
+        deleteButton
+    );
+
+
+    actionSettingsList.appendChild(
+        row
+    );
+}
+
+addActionButton.addEventListener(
+    "click",
+    function() {
+
+        const name =
+            newActionName.value.trim();
+
+
+        if (name === "") {
+
+            alert(
+                "行動項目名を入力してください。"
+            );
+
+            return;
+        }
+
+
+        addAction(name);
+
+    }
+);
+
+function addAction(name) {
+
+    const transaction =
+        db.transaction(
+            ACTION_STORE_NAME,
+            "readwrite"
+        );
+
+
+    const store =
+        transaction.objectStore(
+            ACTION_STORE_NAME
+        );
+
+
+    store.add({
+        name: name
+    });
+
+
+    transaction.oncomplete =
+        function() {
+
+            newActionName.value =
+                "";
+
+            loadActionSettings();
+
+        };
+}
+
+function updateAction(id, newName) {
+
+    const name =
+        newName.trim();
+
+
+    if (name === "") {
+
+        alert(
+            "行動項目名を入力してください。"
+        );
+
+        return;
+    }
+
+
+    const transaction =
+        db.transaction(
+            ACTION_STORE_NAME,
+            "readwrite"
+        );
+
+
+    const store =
+        transaction.objectStore(
+            ACTION_STORE_NAME
+        );
+
+
+    const request =
+        store.get(id);
+
+
+    request.onsuccess =
+        function() {
+
+            const action =
+                request.result;
+
+
+            action.name =
+                name;
+
+
+            store.put(
+                action
+            );
+
+        };
+
+
+    transaction.oncomplete =
+        function() {
+
+            loadActionSettings();
+
+        };
+}
+
+function deleteAction(id) {
+
+    const result =
+        confirm(
+            "この行動項目を削除しますか？"
+        );
+
+
+    if (!result) {
+
+        return;
+    }
+
+
+    const transaction =
+        db.transaction(
+            ACTION_STORE_NAME,
+            "readwrite"
+        );
+
+
+    const store =
+        transaction.objectStore(
+            ACTION_STORE_NAME
+        );
+
+
+    store.delete(id);
+
+
+    transaction.oncomplete =
+        function() {
+
+            loadActionSettings();
+
+        };
 }
 
 // ========================================

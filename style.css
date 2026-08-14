@@ -33,6 +33,7 @@ h1 {
 }
 
 .action-button {
+    height: 50px;
     padding: 5px 10px;
     font-size: 18px;
     border: 1px solid #cccccc;
